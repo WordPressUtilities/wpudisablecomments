@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: WPU disable comments
-Plugin URI: http://github.com/Darklg/WPUtilities
+Plugin URI: https://github.com/WordPressUtilities/wpudisablecomments
 Description: Disable all comments
-Version: 1.6.1
+Version: 2.0.0
 Author: Darklg
-Author URI: http://darklg.me/
+Author URI: https://darklg.me/
 License: MIT License
 License URI: http://opensource.org/licenses/MIT
 */
@@ -16,30 +16,29 @@ License URI: http://opensource.org/licenses/MIT
   Remove from main widget
 ---------------------------------------------------------- */
 
-function wputh_disable_comments_css() {
+add_action('admin_head', 'wpu_disable_comments_css');
+function wpu_disable_comments_css() {
     echo "<style>#dashboard_right_now .comment-count, #dashboard_right_now .table_discussion, #latest-comments{ display:none; } {display:none !important;}</style>";
 }
-
-add_action('admin_head', 'wputh_disable_comments_css');
 
 /* ----------------------------------------------------------
   Remove dashboard widget
 ---------------------------------------------------------- */
 
-function wputh_disable_comments_remove_dashboard_widgets() {
+add_action('wp_dashboard_setup', 'wpu_disable_comments_remove_dashboard_widgets');
+function wpu_disable_comments_remove_dashboard_widgets() {
     global $wp_meta_boxes;
     if (isset($wp_meta_boxes['dashboard']['normal']['core']['dashboard_recent_comments'])) {
         unset($wp_meta_boxes['dashboard']['normal']['core']['dashboard_recent_comments']);
     }
 }
 
-add_action('wp_dashboard_setup', 'wputh_disable_comments_remove_dashboard_widgets');
-
 /* ----------------------------------------------------------
   Hide from admin menu & content
 ---------------------------------------------------------- */
 
-function wputh_disable_comments_admin_menus() {
+add_action('admin_menu', 'wpu_disable_comments_admin_menus');
+function wpu_disable_comments_admin_menus() {
     remove_menu_page('edit-comments.php');
     remove_submenu_page('options-general.php', 'options-discussion.php');
     $post_types = get_post_types(array('public' => true), 'names');
@@ -49,13 +48,12 @@ function wputh_disable_comments_admin_menus() {
     }
 }
 
-add_action('admin_menu', 'wputh_disable_comments_admin_menus');
-
 /* ----------------------------------------------------------
   Removes from all post types
 ---------------------------------------------------------- */
 
-function wputh_disable_comments_support() {
+add_action('init', 'wpu_disable_comments_support', 100);
+function wpu_disable_comments_support() {
     $post_types = get_post_types(array(
         'public' => true
     ), 'names');
@@ -64,28 +62,24 @@ function wputh_disable_comments_support() {
     }
 }
 
-add_action('init', 'wputh_disable_comments_support', 100);
-
 /* ----------------------------------------------------------
   Removes from admin bar
 ---------------------------------------------------------- */
 
-function wputh_disable_comments_admin_bar_render() {
+add_action('wp_before_admin_bar_render', 'wpu_disable_comments_admin_bar_render');
+function wpu_disable_comments_admin_bar_render() {
     global $wp_admin_bar;
     $wp_admin_bar->remove_menu('comments');
 }
-
-add_action('wp_before_admin_bar_render', 'wputh_disable_comments_admin_bar_render');
 
 /* ----------------------------------------------------------
   Send every comment to spam
 ---------------------------------------------------------- */
 
-function wputh_disable_comments_send_spam($approved, $commentdata) {
+add_filter('pre_comment_approved', 'wpu_disable_comments_send_spam', '99', 2);
+function wpu_disable_comments_send_spam($approved, $commentdata) {
     return 'spam';
 }
-
-add_filter('pre_comment_approved', 'wputh_disable_comments_send_spam', '99', 2);
 
 /* ----------------------------------------------------------
   Force options
@@ -93,42 +87,39 @@ add_filter('pre_comment_approved', 'wputh_disable_comments_send_spam', '99', 2);
 
 /* Disable new comments */
 
-function wputh_disable_comments_option_default_comment_status($value) {
+add_filter('pre_option_default_comment_status', 'wpu_disable_comments_option_default_comment_status');
+function wpu_disable_comments_option_default_comment_status($value) {
     return 'closed';
 }
-
-add_filter('pre_option_default_comment_status', 'wputh_disable_comments_option_default_comment_status');
 
 /* Disable new pings */
 
-function wputh_disable_comments_option_default_ping_status($value) {
+add_filter('pre_option_default_ping_status', 'wpu_disable_comments_option_default_ping_status');
+function wpu_disable_comments_option_default_ping_status($value) {
     return 'closed';
 }
-
-add_filter('pre_option_default_ping_status', 'wputh_disable_comments_option_default_ping_status');
 
 /* ----------------------------------------------------------
   Disable pings
 ---------------------------------------------------------- */
 
-function wputh_disable_comments_disable_ping(&$links) {
+add_action('pre_ping', 'wpu_disable_comments_disable_ping', 99);
+function wpu_disable_comments_disable_ping(&$links) {
     $links = array();
 }
-
-add_action('pre_ping', 'wputh_disable_comments_disable_ping');
 
 /* ----------------------------------------------------------
   Disable comments RSS feed
 ---------------------------------------------------------- */
 
-add_filter('feed_links_show_comments_feed', '__return_false');
+add_filter('feed_links_show_comments_feed', '__return_false', 99);
 
 /* ----------------------------------------------------------
   Disable count
 ---------------------------------------------------------- */
 
-add_filter('wp_count_comments', 'wputh_disable_comments_wp_count_comments', 10, 1);
-function wputh_disable_comments_wp_count_comments($content) {
+add_filter('wp_count_comments', 'wpu_disable_comments_wp_count_comments', 10, 1);
+function wpu_disable_comments_wp_count_comments($content) {
     $comment_count = array(
         'approved' => 0,
         'moderated' => 0,
@@ -146,8 +137,8 @@ function wputh_disable_comments_wp_count_comments($content) {
   Simplify comment queries called from some functions
 ---------------------------------------------------------- */
 
-add_filter('comments_clauses', 'wputh_disable_comments_comments_clauses', 999, 1);
-function wputh_disable_comments_comments_clauses($clauses) {
+add_filter('comments_clauses', 'wpu_disable_comments_comments_clauses', 999, 1);
+function wpu_disable_comments_comments_clauses($clauses) {
     return array(
         'fields' => 'comment_ID',
         'join' => '',
@@ -162,9 +153,18 @@ function wputh_disable_comments_comments_clauses($clauses) {
   Remove from WP API
 ---------------------------------------------------------- */
 
-add_filter('rest_endpoints', 'wputh_disable_comments_rest_endpoints');
-function wputh_disable_comments_rest_endpoints($endpoints) {
-    unset($endpoints['/wp/v2/comments']);
-    unset($endpoints['/wp/v2/comments/(?P<id>[\\d]+)']);
+add_filter('rest_endpoints', 'wpu_disable_comments_rest_endpoints');
+function wpu_disable_comments_rest_endpoints($endpoints) {
+    $endpoints_keys = array(
+        '/wp/v2/comments',
+        '/wp/v2/comments/(?P<id>[\\d]+)'
+    );
+
+    foreach ($endpoints_keys as $key) {
+        if (isset($endpoints[$key])) {
+            unset($endpoints[$key]);
+        }
+    }
+
     return $endpoints;
 }
