@@ -3,7 +3,7 @@
 Plugin Name: WPU disable comments
 Plugin URI: https://github.com/WordPressUtilities/wpudisablecomments
 Description: Disable all comments
-Version: 2.0.0
+Version: 2.1.0
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -168,3 +168,9 @@ function wpu_disable_comments_rest_endpoints($endpoints) {
 
     return $endpoints;
 }
+
+/* ----------------------------------------------------------
+  Native condition to close comments
+---------------------------------------------------------- */
+
+add_filter('comments_open', '__return_false', 999, 1);
