@@ -3,7 +3,7 @@
 Plugin Name: WPU disable comments
 Plugin URI: https://github.com/WordPressUtilities/wpudisablecomments
 Description: Disable all comments
-Version: 2.1.0
+Version: 2.2.0
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -174,3 +174,17 @@ function wpu_disable_comments_rest_endpoints($endpoints) {
 ---------------------------------------------------------- */
 
 add_filter('comments_open', '__return_false', 999, 1);
+
+/* ----------------------------------------------------------
+  Prevent access to the WordPress comments files
+---------------------------------------------------------- */
+
+add_filter('mod_rewrite_rules', 'wpu_disable_comments_rewrite_rules', 10, 1);
+function wpu_disable_comments_rewrite_rules($rules) {
+    $new_rules = "<IfModule mod_rewrite.c>
+<FilesMatch (wp-comments-post\.php|wp-trackback\.php)>
+Deny from all
+</FilesMatch>
+</IfModule>\n";
+    return $new_rules . $rules;
+}
