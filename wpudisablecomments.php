@@ -2,10 +2,14 @@
 /*
 Plugin Name: WPU disable comments
 Plugin URI: https://github.com/WordPressUtilities/wpudisablecomments
+Update URI: https://github.com/WordPressUtilities/wpudisablecomments
 Description: Disable all comments
-Version: 2.2.0
+Version: 2.2.1
 Author: Darklg
 Author URI: https://darklg.me/
+Text Domain: wpudisablecomments
+Requires at least: 6.0
+Requires PHP: 8.0
 License: MIT License
 License URI: http://opensource.org/licenses/MIT
 */
@@ -188,3 +192,31 @@ Deny from all
 </IfModule>\n";
     return $new_rules . $rules;
 }
+
+/* ----------------------------------------------------------
+  Prevent access to admin pages
+---------------------------------------------------------- */
+
+add_action('current_screen', function () {
+
+    /* Only once */
+    if (defined('WPU_DISABLE_COMMENTS_CHECK_PAGE')) {
+        return;
+    }
+    define('WPU_DISABLE_COMMENTS_CHECK_PAGE', 1);
+
+    /* Only logged-in non admin users */
+    if (!is_admin() || !is_user_logged_in()) {
+        return;
+    }
+
+    $screen = get_current_screen();
+    if (!isset($screen->base)) {
+        return;
+    }
+
+    if ($screen->base == 'edit-comments') {
+        wp_redirect(admin_url(''));
+        die;
+    }
+});
