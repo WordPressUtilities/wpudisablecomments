@@ -1,20 +1,21 @@
 <?php
+defined('ABSPATH') || die;
 /*
 Plugin Name: WPU disable comments
 Plugin URI: https://github.com/WordPressUtilities/wpudisablecomments
 Update URI: https://github.com/WordPressUtilities/wpudisablecomments
 Description: Disable all comments
-Version: 2.2.1
+Version: 2.3.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpudisablecomments
-Requires at least: 6.0
+Requires at least: 6.2
 Requires PHP: 8.0
 License: MIT License
-License URI: http://opensource.org/licenses/MIT
+License URI: https://opensource.org/licenses/MIT
 */
 
-// Thx to : http://wordpress.stackexchange.com/a/17936
+// Thx to : https://wordpress.stackexchange.com/a/17936
 
 /* ----------------------------------------------------------
   Remove from main widget
@@ -74,6 +75,19 @@ add_action('wp_before_admin_bar_render', 'wpu_disable_comments_admin_bar_render'
 function wpu_disable_comments_admin_bar_render() {
     global $wp_admin_bar;
     $wp_admin_bar->remove_menu('comments');
+
+    /* Disable links to comments */
+    $all_nodes = $wp_admin_bar->get_nodes();
+    foreach ($all_nodes as $key => $val) {
+        $current_node = $all_nodes[$key];
+        if (!$current_node->href) {
+            continue;
+        }
+        if (strpos($current_node->href, 'edit-comments') === false) {
+            continue;
+        }
+        $wp_admin_bar->remove_node($key);
+    }
 }
 
 /* ----------------------------------------------------------
