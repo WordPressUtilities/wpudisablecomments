@@ -5,7 +5,7 @@ Plugin Name: WPU disable comments
 Plugin URI: https://github.com/WordPressUtilities/wpudisablecomments
 Update URI: https://github.com/WordPressUtilities/wpudisablecomments
 Description: Disable all comments
-Version: 2.3.1
+Version: 2.4.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpudisablecomments
@@ -131,7 +131,24 @@ function wpu_disable_comments_disable_ping(&$links) {
   Disable comments RSS feed
 ---------------------------------------------------------- */
 
+/* Disable links in head
+-------------------------- */
+
 add_filter('feed_links_show_comments_feed', '__return_false', 99);
+
+/* Disable comments feed
+-------------------------- */
+
+add_action('wp', 'wpudisablecomments_disable_comments_feed', 10);
+function wpudisablecomments_disable_comments_feed() {
+    if (is_comment_feed()) {
+        global $wp_query;
+        $wp_query->set_404();
+        status_header(404);
+        nocache_headers();
+        exit;
+    }
+}
 
 /* ----------------------------------------------------------
   Disable count
